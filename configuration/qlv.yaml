@@ -5,10 +5,10 @@ protocol: http
 lock_order_args:
   xc:
     {
-      "policy_name": "当天#优享#单选#ws",
+      "policy_name": "向彬文 重复购买",
       "oper": "robot-XC",
       "air_cos": "",
-      "order_pk": "	2909967",
+      "order_pk": "	2910325",
       "order_src_cat": "国内",
     }
 interfaces:

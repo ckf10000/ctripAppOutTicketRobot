@@ -23,7 +23,7 @@ class QlvRequestParamsConverter(object):
             departure_time=iso_to_standard_datestr(datestr=flights.get("DatDep")),
             departure_city=flights.get("CodeDep"),
             departure_city_name=flights.get("CityDep"),
-            arrive_time=flights.get("DatArr"),
+            arrive_time=iso_to_standard_datestr(datestr=flights.get("DatArr")),
             arrive_city=flights.get("CodeArr"),
             arrive_city_name=flights.get("CityArr"),
             flight=flights.get("FlightNo"),

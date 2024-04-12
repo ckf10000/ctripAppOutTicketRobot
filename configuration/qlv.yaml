@@ -5,7 +5,7 @@ protocol: http
 lock_order_args:
   xc:
     {
-      "policy_name": "当天#优享#单选",
+      "policy_name": "携程易宝#旗舰店#ws",
       "oper": "robot-XC",
       "air_cos": "",
       "order_pk": "",

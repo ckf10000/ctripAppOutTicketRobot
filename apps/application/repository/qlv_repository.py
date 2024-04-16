@@ -12,7 +12,6 @@
 import typing as t
 from apps.common.libs.parse_yaml import DictObject
 from apps.common.libs.service_environ import configuration
-from apps.common.libs.date_extend import current_datetime_str
 
 
 class QlvConfigRepository(object):
@@ -62,7 +61,7 @@ class QlvConfigRepository(object):
     def get_order_pay_info(cls, booking_info: t.Dict) -> t.Dict:
         return {
             "order_id": booking_info.get("pre_order_id"),
-            "pay_time": current_datetime_str(),
+            "payment_time": booking_info.get("payment_time"),
             "out_pf": booking_info.get("out_pf"),
             "out_ticket_account": booking_info.get("out_ticket_account"),
             "pay_account_type": booking_info.get("pay_account_type"),

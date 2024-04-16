@@ -160,7 +160,7 @@ class OrderService(object):
             user_id: int,
             order_id: int,
             oper: str,
-            pay_time: str,
+            payment_time: str,
             out_pf: str,
             out_ticket_account: str,
             pay_account_type: str,
@@ -195,7 +195,7 @@ class OrderService(object):
         """
         request_data = {
             "orderID": order_id,
-            "payTime": pay_time,
+            "payTime": payment_time,
             "outPF": out_pf,
             "outTicketAccount": out_ticket_account,
             "payAccountType": pay_account_type,

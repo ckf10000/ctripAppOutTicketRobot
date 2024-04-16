@@ -65,7 +65,7 @@ def test_save_order_pay_info():
         "user_key": "9a68295ec90b1fc10ab94331c882bab9",
         "user_id": 186,
         "order_id": 1232132131231231,
-        "pay_time": "2024-04-10 19:46:00",
+        "payment_time": "2024-04-10 19:46:00",
         "out_pf": "XCAPP",
         "out_ticket_account": "K王总信用卡",
         "pay_account_type": "K王总信用卡",

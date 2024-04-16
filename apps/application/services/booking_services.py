@@ -14,6 +14,7 @@ import typing as t
 from decimal import Decimal
 from apps.common.annotation.log_service import logger
 from apps.common.config.flight_ticket import airline_map
+from apps.common.libs.date_extend import current_datetime_str
 from apps.domain.services.app_ui_services import CtripAppService
 from apps.application.validators.booking_validators import FlightTicketValidator
 
@@ -32,8 +33,8 @@ class BookingFlightService(object):
             payment_type = payment_info.get("pay_type")
             if payment_type == "gift_card":
                 is_wallet_usable, amount = app.is_wallet_usable()
-                if is_wallet_usable is True or FlightTicketValidator.validator_payment_with_wallet(
-                        pre_sale_amount=Decimal(pre_sale_amount), actual_amount= amount
+                if is_wallet_usable is True and FlightTicketValidator.validator_payment_with_wallet(
+                        pre_sale_amount=Decimal(pre_sale_amount), actual_amount=amount
                 ) is True:
                     app.touch_wallet_payment()
                     app.select_gift_card(payment_method=payment_card)
@@ -191,7 +192,8 @@ class BookingFlightService(object):
                         departure_city_name=departure_city_name,
                         arrive_city_name=arrive_city_name,
                         arrive_time=arrive_time,
-                        ctrip_username=ctrip_username
+                        ctrip_username=ctrip_username,
+                        payment_time=current_datetime_str()
                     )
                     return result
         else:

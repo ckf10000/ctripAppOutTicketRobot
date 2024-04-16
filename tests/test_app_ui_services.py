@@ -27,19 +27,13 @@ def test_select_insecure():
 def test_get_tickect_actual_amount():
     app = CtripAppService()
     app.start()
-    app.get_tickect_actual_amount()
+    app.get_ticket_actual_amount()
 
 
 def test_get_tickect_deduction_amount():
     app = CtripAppService()
     app.start()
-    app.get_tickect_deduction_amount()
-
-
-def test_get_pending_trip_order():
-    app = CtripAppService()
-    app.start()
-    app.get_pending_trip_order()
+    app.get_ticket_deduction_amount()
 
 
 def test_close_important_trip_guidelines():
@@ -114,12 +108,41 @@ def test_select_passenger_card_type():
     app.select_passenger_card_type(card_type="身份证")
 
 
+def test_select_payment_method():
+    app = CtripAppService()
+    app.start()
+    app.select_payment_method(payment_method="民生银行信用卡(6269)")
+
+
+def test_select_point_deduction():
+    app = CtripAppService()
+    app.start()
+    app.select_point_deduction()
+
+
+def test_is_wallet_usable():
+    app = CtripAppService()
+    app.start()
+    print(app.is_wallet_usable())
+
+
+def test_touch_wallet_payment():
+    app = CtripAppService()
+    app.start()
+    app.touch_wallet_payment()
+
+
+def test_select_gift_card():
+    app = CtripAppService()
+    app.start()
+    app.select_gift_card(payment_method="礼品卡-任我行")
+
+
 if __name__ == "__main__":
     # test_select_special_flight()
     # test_select_insecure()
     # test_get_tickect_actual_amount()
     # test_get_tickect_deduction_amount()
-    # test_get_pending_trip_order()
     # test_close_important_trip_guidelines()
     # test_get_flight_ticket_with_order_id()
     # test_get_flight_ticket_with_itinerary_id()
@@ -130,5 +153,10 @@ if __name__ == "__main__":
     # test_close_coupon_dialog()
     # test_expand_order_detail()
     # test_touch_order_detail()
-    test_touch_passenger_card_type()
-    test_select_passenger_card_type()
+    # test_touch_passenger_card_type()
+    # test_select_passenger_card_type()
+    # test_select_payment_method()
+    # test_select_point_deduction()
+    # test_is_wallet_usable()
+    # test_touch_wallet_payment()
+    test_select_gift_card()

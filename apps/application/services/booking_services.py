@@ -14,7 +14,6 @@ import typing as t
 from decimal import Decimal
 from apps.common.annotation.log_service import logger
 from apps.common.config.flight_ticket import airline_map
-from apps.common.annotation.asynchronous import async_threading
 from apps.domain.services.app_ui_services import CtripAppService
 from apps.application.validators.booking_validators import FlightTicketValidator
 
@@ -22,6 +21,51 @@ __all__ = ["booking_flight_ser"]
 
 
 class BookingFlightService(object):
+
+    @classmethod
+    def loop_payment_account(cls, app: CtripAppService, pre_sale_amount: str, payment_pass: t.List) -> t.Tuple:
+        is_payment_success = False
+        is_payment_card = None
+        for payment_info in payment_pass:
+            payment_pass = payment_info.get("pay_key")
+            payment_card = payment_info.get("pay_name")
+            payment_type = payment_info.get("pay_type")
+            if payment_type == "gift_card":
+                is_wallet_usable, amount = app.is_wallet_usable()
+                if is_wallet_usable is True or FlightTicketValidator.validator_payment_with_wallet(
+                        pre_sale_amount=Decimal(pre_sale_amount), actual_amount= amount
+                ) is True:
+                    app.touch_wallet_payment()
+                    app.select_gift_card(payment_method=payment_card)
+                    app.touch_wallet_immediate_payment()
+                    app.enter_payment_pass(payment_pass=payment_pass)
+                    is_payment_complete = app.is_payment_complete()
+                else:
+                    continue
+            else:
+                app.touch_payment_method()
+                app.select_payment_method(payment_method=payment_card)
+                app.select_point_deduction()
+                ticket_actual_amount = app.get_ticket_actual_amount()
+                ticket_deduction_amount = app.get_ticket_deduction_amount()
+                do_validator = FlightTicketValidator.validator_payment_with_deduction(
+                    pre_sale_amount=Decimal(pre_sale_amount),
+                    actual_amount=ticket_actual_amount,
+                    deduction_amount=ticket_deduction_amount,
+                )
+                if do_validator is True:
+                    app.touch_bank_card_payment()
+                    app.enter_payment_pass(payment_pass=payment_pass)
+                    is_payment_complete = app.is_payment_complete()
+                    if is_payment_complete is False:
+                        app.is_balance(payment_card=payment_card)
+                else:
+                    continue
+            if is_payment_complete is True:
+                is_payment_success = True
+                is_payment_card = payment_card
+                break
+        return is_payment_success, is_payment_card
 
     @classmethod
     def booking_ctrip_app_special_flight_ticket(
@@ -38,10 +82,9 @@ class BookingFlightService(object):
             card_id: str,  # 身份证号
             card_type: str,  # 证件类型
             internal_phone: str,  # 内部手机号码
-            payment_pass: str,  # 支付密码
+            payment_pass: t.List,  # 银行里与支付密码的列表
             ctrip_username: str,  # 携程账号
             user_pass: str,  # 携程账号密码
-            payment_method: str,  # 携程支付方式
             departure_city_name: str = "",  # 离开城市名
             arrive_city_name: str = "",  # 抵达城市名
             passenger_phone: str = ""  # 乘客手机号码
@@ -54,6 +97,7 @@ class BookingFlightService(object):
         app.device.wake()
         app.restart()
         time.sleep(8)
+        app.hide_navigation_bar()
         app.touch_home()
         app.touch_flight_ticket()
         app.touch_special_flight_ticket()
@@ -114,22 +158,12 @@ class BookingFlightService(object):
                 app.touch_to_payment()
                 app.touch_insure_no()
                 app.touch_read_agree()
-                app.touch_payment_method()
-                app.select_payment_method(payment_method=payment_method)
                 app.select_more_payment()
-                app.select_point_deduction()
-                tickect_actual_amount = app.get_tickect_actual_amount()
-                tickect_deduction_amount = app.get_tickect_deduction_amount()
-                do_validator = FlightTicketValidator.validator_payment_with_deduction(
-                    pre_sale_amount=Decimal(pre_sale_amount),
-                    actual_amount=tickect_actual_amount,
-                    deduction_amount=tickect_deduction_amount,
+                is_payment_success, payment_method = cls.loop_payment_account(
+                    app=app, pre_sale_amount=pre_sale_amount, payment_pass=payment_pass
                 )
-                if do_validator is True:
-                    app.touch_bank_card_payment()
-                    app.enter_payment_pass(payment_pass=payment_pass)
+                if is_payment_success is True:
                     payment_amount = app.get_order_with_payment_amount()
-                    payment_method = app.get_order_with_payment_method()
                     app.touch_payment_complete()
                     app.close_coupon_dialog()
                     app.expand_order_detail()
@@ -146,6 +180,7 @@ class BookingFlightService(object):
                         flight=flight,
                         passenger=passenger,
                         age_stage=age_stage,
+                        card_type=card_type,
                         card_id=card_id,
                         internal_phone=internal_phone,
                         passenger_phone=passenger_phone,
@@ -166,11 +201,6 @@ class BookingFlightService(object):
                 )
             )
         return result
-
-    @classmethod
-    @async_threading
-    def asymc_booking_ctrip_app_special_flight_ticket(cls, **kwargs) -> None:
-        cls.booking_ctrip_app_special_flight_ticket(**kwargs)
 
 
 booking_flight_ser = BookingFlightService()

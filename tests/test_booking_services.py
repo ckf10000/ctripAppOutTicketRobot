@@ -25,16 +25,26 @@ def test_booking_ctrip_app_special_flight_ticket():
         card_id="321284199803018015",
         card_type="身份证",
         pre_sale_amount="240.00",
-        payment_pass="901127",
+        payment_pass=[{"card_type": "浦发银行储蓄卡(7397)", "pay_key": "901127"}],
         internal_phone="18569520328",
         passenger_phone="18261063386",
         age_stage="成人",
         pre_order_id="2891160",
         ctrip_username="18600440822",
-        user_pass="ca161022",
-        payment_method="浦发银行储蓄卡(7397)"
+        user_pass="ca161022"
     )
 
 
+def test_loop_payment_account():
+    from apps.domain.services.app_ui_services import CtripAppService
+    app = CtripAppService()
+    app.start()
+    payment_pass = [
+        {"card_type": "招商银行储蓄卡(1644)", "pay_key": "869182"}
+    ]
+    booking_flight_ser.loop_payment_account(app=app, pre_sale_amount="470.00", payment_pass=payment_pass)
+
+
 if __name__ == "__main__":
-    test_booking_ctrip_app_special_flight_ticket()
+    # test_booking_ctrip_app_special_flight_ticket()
+    test_loop_payment_account()

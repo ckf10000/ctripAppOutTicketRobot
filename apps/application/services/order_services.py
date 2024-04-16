@@ -106,14 +106,15 @@ class CTripService(object):
     def booking_passenger_flight_ticket(cls, flight_info: t.Dict, passenger: t.Dict) -> t.Dict:
         passenger_info = CTripConfigRepository.get_passenger_info(qlv_passengers=passenger)
         flight_info.update(passenger_info)
-        flight_info["payment_method"], payment_config = CTripConfigRepository.get_payment_group_config(
-            group_name="group_1"
-        )
         ctrip_group_config = CTripConfigRepository.get_ctrip_group_config(group_name="group_1")
         flight_info.update(ctrip_group_config)
         booking_info = booking_flight_ser.booking_ctrip_app_special_flight_ticket(**flight_info)
         # 有预订信息，说明订票成功
         if booking_info:
+            pay_method = booking_info.get("payment_method")
+            payment_config = CTripConfigRepository.get_payment_group_config(pay_method=pay_method)
+            # 此处临时逻辑赋值，目前还不支持非身份证的证件类型购买机票
+            booking_info["card_type"] = passenger_info.get("card_type")
             booking_info["user_pass"] = ctrip_group_config.get("user_pass")
             booking_info.update(payment_config)
         return booking_info
@@ -134,8 +135,7 @@ class OutTicketService(object):
             )
             if booking_info:
                 booking_info.update(dict(oper=oper))
-                logger.info("开始往MQ推送携程机票订单信息：<{}>".format(booking_info))
-                MQMessageService.push_flight_ticket_order(message=booking_info)
+                MQMessageService.async_push_ctrip_app_flight_ticket_order(message=booking_info)
                 # 2. 回填采购信息与票号
                 QlvService.save_pay_info(booking_info=booking_info)
                 if booking_info.get("itinerary_id"):

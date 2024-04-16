@@ -9,8 +9,10 @@
 # Copyright ©2011-2024. Hunan xxxxxxx Company limited. All rights reserved.
 # ---------------------------------------------------------------------------------------------------------
 """
+import re
 import typing as t
 from decimal import Decimal
+from poco.proxy import UIObjectProxy
 from poco.exceptions import PocoNoSuchNodeException
 
 from apps.common.annotation.log_service import logger
@@ -42,6 +44,17 @@ class CtripAppService(PlatformService):
     def restart(self) -> None:
         stop_app(self.app_name)
         self.device.start_app(self.app_name)
+
+    def hide_navigation_bar(self) -> None:
+        """如果导航栏已打开，需要隐藏，导航栏很影响元素定位"""
+        try:
+            navigation_bar = self.device.get_po(
+                type="android.widget.ImageView", name="com.android.systemui:id/hide", desc="隐藏"
+            )
+            if navigation_bar.exists():
+                navigation_bar.click()
+        except (PocoNoSuchNodeException, Exception):
+            logger.warning("导航栏没有打开，无需处理.")
 
     @SleepWait(wait_time=1)
     def touch_home(self) -> None:
@@ -776,26 +789,17 @@ class CtripAppService(PlatformService):
 
     @SleepWait(wait_time=1)
     def touch_payment_method(self) -> None:
-        """点击【付款方式】"""
-        try:
-            payment_method = self.device.get_po(
-                type="android.widget.TextView",
-                name="android.widget.TextView",
-                text="付款方式"
-            )
-            payment_method.click()
-            logger.info("在支付弹窗界面，点击选择【付款方式】")
-        except (PocoNoSuchNodeException, Exception):
-            payment_method = self.device.get_po(
-                type="android.widget.TextView",
-                name="android.widget.TextView",
-                text="换卡支付，支持境外卡"
-            )
-            payment_method.click()
-            logger.info("在安全收银台界面，点击选择【换卡支付，支持境外卡】")
+        """点击【换卡支付，支持境外卡】"""
+        payment_method = self.device.get_po(
+            type="android.widget.TextView",
+            name="android.widget.TextView",
+            text="换卡支付，支持境外卡"
+        )
+        payment_method.click()
+        logger.info("在安全收银台界面，点击选择【换卡支付，支持境外卡】")
 
     @SleepWait(wait_time=1)
-    def select_payment_method(self, payment_method: str = "浦发银行储蓄卡(7397)") -> None:
+    def select_payment_method(self, payment_method: str) -> None:
         """选择【xxxy银行储蓄卡(xxxx)】"""
         method = self.device.get_po(
             type="android.widget.TextView",
@@ -818,20 +822,91 @@ class CtripAppService(PlatformService):
         except (PocoNoSuchNodeException, Exception):
             logger.info("没有出现支付小弹框，请在通用支付选择界面操作.")
 
+    def __get_wallet_element(self) -> UIObjectProxy:
+        return self.device.get_po(
+            type="android.widget.TextView", name="android.widget.TextView", textMatches=r'^钱包.*'
+        )
+
+    @SleepWait(wait_time=1)
+    def is_wallet_usable(self) -> t.Tuple:
+        """
+        判断收银台界面，钱包支付是否可用，如果可用，还要判断钱包的余额是否够用
+        """
+        flag = False
+        amount = 0.00
+        try:
+            wallet = self.__get_wallet_element()
+            if wallet.exists() is True:
+                logger.info("账户钱包没有隐藏，可以选中.")
+                text = wallet.get_text().strip("")
+                logger.info("账户钱包可用余额的展示为：{}.".format(text))
+                pattern = r'\d+\.\d+'
+                # 使用 re.findall() 函数查找字符串中匹配的浮点数
+                matches = re.findall(pattern, text)
+                # 如果找到了匹配的浮点数，则返回第一个匹配结果（应该只有一个）
+                if matches:
+                    flag, amount = True, Decimal(matches[0])
+                else:
+                    logger.warning("钱包的可用文案<{}>有异常.".format(text))
+            else:
+                logger.info("账户钱包被隐藏了，不能操作钱包.")
+        except (PocoNoSuchNodeException, Exception):
+            logger.warning("安全收银台界面，没有出现钱包的选择入口.")
+        return flag, amount
+
+    @SleepWait(wait_time=1)
+    def touch_wallet_payment(self) -> None:
+        wallet = self.__get_wallet_element()
+        wallet.click()
+
+    @SleepWait(wait_time=1)
+    def select_gift_card(self, payment_method: str) -> None:
+        """选择对应的礼品卡"""
+        gift_card = self.device.get_po(
+            type="android.widget.TextView", name="android.widget.TextView", text=payment_method
+        )
+        gift_card.click()
+
+    @SleepWait(wait_time=5)
+    def touch_wallet_immediate_payment(self) -> None:
+        """选择对应的礼品卡，点击【使用钱包全额抵扣，立即支付】"""
+        wallet_immediate_payment = self.device.get_po(
+            type="android.widget.TextView", name="android.widget.TextView", text="使用钱包全额抵扣，立即支付"
+        )
+        wallet_immediate_payment.click()
+
     @SleepWait(wait_time=1)
     def select_point_deduction(self) -> None:
         """
-        支付界面，选择【积分抵扣】
+        支付界面，选择【积分抵扣】，这里的逻辑是，如果已经选中，再点击积分抵扣，就会变成取消抵扣
         """
-        point_deduction = self.device.get_po_extend(
-            type="android.widget.TextView",
-            name="android.widget.TextView",
-            text="100积分抵扣1元",
-            global_num=0,
-            local_num=4,
-            touchable=False,
-        )[0]
-        point_deduction.click()
+        default_text = "100积分抵扣1元"
+        selected_text = "-¥10.00"
+        poco = None
+        try:
+            point_deduction = self.device.get_po(
+                type="android.widget.TextView",
+                name="android.widget.TextView",
+                text=selected_text
+            )
+            if point_deduction.exists():
+                poco = point_deduction
+        except (PocoNoSuchNodeException, Exception):
+            logger.warning("没有找到已选中积分抵扣，可能它是初始状态，还未选择.")
+        if poco is None:
+            try:
+                poco = self.device.get_po(
+                    type="android.widget.TextView",
+                    name="android.widget.TextView",
+                    text=default_text
+                )
+                if poco.exists():
+                    poco.click()
+                    logger.info("积分抵扣已经选中，接下来将进行支付操作.")
+            except (PocoNoSuchNodeException, Exception):
+                logger.warning("既没有找到默认的积分抵扣选项，也没有找到已选中的积分抵扣.")
+        else:
+            logger.info("积分抵扣已经选中，接下来将进行支付操作.")
 
     @SleepWait(wait_time=5)
     def touch_bank_card_payment(self) -> None:
@@ -848,7 +923,7 @@ class CtripAppService(PlatformService):
         )[0]
         point_deduction.click()
 
-    def get_tickect_actual_amount(self) -> Decimal:
+    def get_ticket_actual_amount(self) -> Decimal:
         """
         确定使用积分抵扣后，票据的实际支付金额
         """
@@ -865,7 +940,7 @@ class CtripAppService(PlatformService):
             actual_amount, str) else 9999999999.9999999999
         return actual_amount
 
-    def get_tickect_deduction_amount(self) -> Decimal:
+    def get_ticket_deduction_amount(self) -> Decimal:
         """
         使用积分抵扣的金额
         """
@@ -897,56 +972,84 @@ class CtripAppService(PlatformService):
             else:
                 raise ValueError("文件<{}>缺失...", format(file_name))
 
+    @SleepWait(wait_time=10)
+    def is_balance(self, payment_card: str) -> bool:
+        """
+        判断是否出现余额不足的小弹框
+        """
+        flag = False
+        try:
+            balance_poco = self.device.get_po(
+                type="android.widget.TextView",
+                name="android.widget.TextView",
+                text="更换支付方式"
+            )
+            if balance_poco.exists():
+                logger.warning("银行卡【{}】余额不足，请更换其他银行卡或使用其他支付方式.".format(payment_card))
+                balance_poco.click()
+                flag = True
+        except (PocoNoSuchNodeException, Exception):
+            logger.warning("没有找到余额不足小弹框，接下来更换支付方式，继续支付.")
+        return flag
+
+    @SleepWait(wait_time=10)
+    def is_payment_complete(self) -> bool:
+        """
+        判断是否限额，余额不足或其他异常，没有异常的话，输入密码后，会出现【完成】小弹框界面
+        """
+        flag = False
+        try:
+            limit_quotas = self.device.get_po_extend(
+                type="android.widget.TextView",
+                name="android.widget.TextView",
+                text="完成",
+                global_num=0,
+                local_num=1,
+                touchable=False,
+            )[0]
+            if limit_quotas.exists():
+                logger.info("已经支付成功，等待出票.")
+                flag = True
+        except (PocoNoSuchNodeException, Exception):
+            logger.warning("支付有异常，需要更新支付类型，重新支付.")
+        return flag
+
     @SleepWait(wait_time=1)
     def get_order_with_payment_amount(self) -> Decimal:
         """获取支付成功后的订单金额"""
-        payment_amount = self.device.get_po_extend(
-            type="android.widget.TextView",
-            name="android.widget.TextView",
-            textMatches_inner=r"^\d+.\d*",
-            global_num=0,
-            local_num=5,
-            touchable=False,
-        )[0]
-        payment_amount = payment_amount.get_text()
-        logger.info("从支付成功界面获取到的实际支付金额是: {}".format(payment_amount))
-        payment_amount = Decimal(payment_amount) if isinstance(
-            payment_amount, str) else -9999999999.9999999999
+        payment_amount = -9999999999.9999999999
+        try:
+            payment_amount = self.device.get_po_extend(
+                type="android.widget.TextView",
+                name="android.widget.TextView",
+                textMatches_inner=r"^\d+.\d*",
+                global_num=0,
+                local_num=5,
+                touchable=False,
+            )[0]
+            payment_amount = payment_amount.get_text()
+            logger.info("从支付成功界面获取到的实际支付金额是: {}".format(payment_amount))
+            payment_amount = Decimal(payment_amount) if isinstance(payment_amount, str) else payment_amount
+        except Exception as e:
+            logger.error(str(e))
         return payment_amount
 
-    @SleepWait(wait_time=1)
-    def get_order_with_payment_method(self) -> t.Dict:
-        """获取支持成功后的支付方式"""
-        payment_method = self.device.get_po_extend(
-            type="android.widget.TextView",
-            name="android.widget.TextView",
-            textMatches_inner=".+(?:储蓄卡|信用卡).*",
-            global_num=0,
-            local_num=2,
-            touchable=False,
-        )[0]
-        payment_method = payment_method.get_text()
-        logger.info("从支付成功界面获取到的支付方式是: {}".format(payment_method))
-        payment_method_slice = payment_method.split(" ")
-        return dict(
-            bank_name=payment_method_slice[0],  # 银行名称
-            card_type=payment_method_slice[1],  # 银行卡类型，这里支持储蓄卡，信用卡
-            last_four_digits=payment_method_slice[1:-1]  # 银行卡末四位数字
-        )
-
-    @SleepWait(wait_time=8)
+    @SleepWait(wait_time=20)
     def touch_payment_complete(self) -> None:
         """在支付成功界面，点击【完成】"""
-        payment_complete_button = self.device.get_po_extend(
-            type="android.widget.TextView",
-            name="android.widget.TextView",
-            text="完成",
-            global_num=0,
-            local_num=1,
-            touchable=False,
-        )[0]
-        payment_complete_button.click()
-        logger.info("点击支付成功界面的【完成】按钮.")
+        try:
+            payment_complete_button = self.device.get_po_extend(
+                type="android.widget.TextView",
+                name="android.widget.TextView",
+                text="完成",
+                global_num=0,
+                local_num=1,
+                touchable=False,
+            )[0]
+            payment_complete_button.click()
+            logger.info("点击支付成功界面的【完成】按钮.")
+        except Exception as e:
+            logger.error("查询界面的完成按钮失败，原因：{}".format(str(e)))
 
     @SleepWait(wait_time=1)
     def close_coupon_dialog(self) -> None:
@@ -962,21 +1065,27 @@ class CtripAppService(PlatformService):
     @SleepWait(wait_time=1)
     def expand_order_detail(self) -> None:
         """展开【详情/首页】"""
-        file_name = join_path([get_images_dir(), "完成后的订单详情.png"])
-        if is_exists(file_name):
-            temp = self.device.get_cv_template(file_name=file_name)
-        else:
-            temp = (902, 202)  # LG g7手机上对应的坐标位置，其他型号手机可能不是这个值
-        self.device.touch(v=temp)
-        logger.info("展开【详情/首页】，接下来可以点击【查订单/开发票】")
+        try:
+            file_name = join_path([get_images_dir(), "完成后的订单详情.png"])
+            if is_exists(file_name):
+                temp = self.device.get_cv_template(file_name=file_name)
+            else:
+                temp = (902, 202)  # LG g7手机上对应的坐标位置，其他型号手机可能不是这个值
+            self.device.touch(v=temp)
+            logger.info("展开【详情/首页】，接下来可以点击【查订单/开发票】")
+        except Exception as e:
+            logger.error("展开【详情/首页】元素失败，原因：{}".format(str(e)))
 
     @SleepWait(wait_time=5)
     def touch_order_detail(self) -> None:
         """点击【查订单/开发票】，进入订单详情界面"""
-        order_detail = self.device.get_po(type="android.widget.TextView", name="android.widget.TextView",
-                                          text="查订单/开发票")
-        order_detail.click()
-        logger.info("点击【查订单/开发票】，进入订单详情界面")
+        try:
+            order_detail = self.device.get_po(type="android.widget.TextView", name="android.widget.TextView",
+                                              text="查订单/开发票")
+            order_detail.click()
+            logger.info("点击【查订单/开发票】，进入订单详情界面")
+        except Exception as e:
+            logger.error("点击点击【查订单/开发票】失败，原因：{}".format(str(e)))
 
     @SleepWait(wait_time=1)
     def close_important_trip_guidelines(self) -> None:
@@ -1013,43 +1122,50 @@ class CtripAppService(PlatformService):
     @SleepWait(wait_time=1)
     def get_flight_ticket_with_order_id(self) -> str:
         """获取机票订单的id"""
-        poco = self.device.get_po_extend(
-            type="android.widget.TextView",
-            name="pricePolicy_Text_订单号",
-            global_num=0,
-            local_num=3,
-            touchable=False
-        )[0]
-        return poco.get_text().split("：")[-1].strip()
+        order_id = None
+        try:
+            poco = self.device.get_po_extend(
+                type="android.widget.TextView",
+                name="pricePolicy_Text_订单号",
+                global_num=0,
+                local_num=3,
+                touchable=False
+            )[0]
+            order_id = poco.get_text().split("：")[-1].strip()
+        except Exception as e:
+            logger.error("获取携程订单id失败，原因：{}".format(str(e)))
+        return order_id
 
     @SleepWait(wait_time=1)
-    def get_flight_ticket_with_itinerary_id(self):
-        """获取机票中乘客的行程单号"""
+    def get_flight_ticket_with_itinerary_id(self) -> str:
+        """获取机票中乘客的行程单号，可能在出票中，那么就先结束流程，等待人工回填行程单号"""
         # 滑动屏幕三次
         for i in range(3):
             self.device.quick_slide_screen()
-        poco = (
-            self.device.poco("android.widget.FrameLayout")
-            .offspring("android:id/content")
-            .child("ctrip.android.view:id/a")
-            .child("ctrip.android.view:id/a")
-            .offspring("android.widget.LinearLayout")
-            .offspring("android.widget.FrameLayout")
-            .child("android.view.ViewGroup")
-            .child("android.view.ViewGroup")
-            .child("android.view.ViewGroup")
-            .child("android.view.ViewGroup")
-            .child("android.view.ViewGroup")[1]
-            .offspring("PullRefreshScrollView_ScrollView")
-            .child("android.view.ViewGroup")
-            .child("android.view.ViewGroup")
-            .offspring("@contactInfo")
-            .offspring("contactInfo_Text_票号")[0]
-        )
-        if poco.exists() is True:
-            itinerary_id = poco.get_text().split("：")[-1].strip()
-        else:
-            itinerary_id = None
+        itinerary_id = None
+        try:
+            poco = (
+                self.device.poco("android.widget.FrameLayout")
+                .offspring("android:id/content")
+                .child("ctrip.android.view:id/a")
+                .child("ctrip.android.view:id/a")
+                .offspring("android.widget.LinearLayout")
+                .offspring("android.widget.FrameLayout")
+                .child("android.view.ViewGroup")
+                .child("android.view.ViewGroup")
+                .child("android.view.ViewGroup")
+                .child("android.view.ViewGroup")
+                .child("android.view.ViewGroup")[1]
+                .offspring("PullRefreshScrollView_ScrollView")
+                .child("android.view.ViewGroup")
+                .child("android.view.ViewGroup")
+                .offspring("@contactInfo")
+                .offspring("contactInfo_Text_票号")[0]
+            )
+            if poco.exists() is True:
+                itinerary_id = poco.get_text().split("：")[-1].strip()
+        except (PocoNoSuchNodeException, Exception):
+            logger.warning("出票中，没有查找到行程单.")
         return itinerary_id
 
     # 为了调式方便，暂时注释

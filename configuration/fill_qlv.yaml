@@ -1,0 +1,30 @@
+"民生银行信用卡(6269)":
+  out_pf: XCAPP
+  out_ticket_account: K王总信用卡
+  pay_account_type: K王总行用卡
+  pay_account: "6269-民生"
+"招商银行信用卡(2003)":
+  out_pf: XCAPP
+  out_ticket_account: K王总信用卡
+  pay_account_type: K王总行用卡
+  pay_account: "6225781800482003"
+"中信银行信用卡(3586)":
+  out_pf: XCAPP
+  out_ticket_account: K王总信用卡
+  pay_account_type: K王总行用卡
+  pay_account: "6226880688703586"
+"民生银行信用卡(0907)":
+  out_pf: XCAPP
+  out_ticket_account: K王总信用卡
+  pay_account_type: K王总行用卡
+  pay_account: "0907"
+"浦发银行储蓄卡(7397)":
+  out_pf: XCAPP
+  out_ticket_account: K王总信用卡
+  pay_account_type: K王总行用卡
+  pay_account: "浦发7397"
+"礼品卡-任我行":
+  out_pf: XCAPP
+  out_ticket_account: K王总信用卡
+  pay_account_type: XC礼品卡
+  pay_account: XC礼品卡

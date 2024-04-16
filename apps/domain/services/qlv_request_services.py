@@ -12,6 +12,7 @@
 import typing as t
 
 from apps.common.libs.utils import encryp_md5
+from apps.common.annotation.log_service import logger
 from apps.infrastructure.api.http_client import HttpService
 
 
@@ -27,13 +28,14 @@ class OrderService(object):
         result = []
         for key in sorted_keys:
             value = request_data[key]
-            if value == "":
+            if value == "" or value is None:
                 result.append("{}=".format(key))  # 当值为空串时，使用 key=
             else:
                 result.append("{}={}".format(key, value))  # 当值不为空串时，使用 key=value
         result.append(user_key)
         # 使用空格连接所有拼接结果
         concatenated_string = "".join(result)
+        logger.info('用于签名的拼接字符串为："{}"'.format(concatenated_string))
         return encryp_md5(concatenated_string)
 
     def lock_order(

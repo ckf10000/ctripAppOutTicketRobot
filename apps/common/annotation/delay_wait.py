@@ -22,7 +22,8 @@ class SleepWait(object):
 
     def __call__(self, func: Callable) -> Any:
         def wrapper(*args, **kwargs):
-            result = func(*args, **kwargs) or None
+            result = func(*args, **kwargs)
+            result = result if isinstance(result, bool) else (result if result else None)
             sleep(self.wait_time)
             return result
 

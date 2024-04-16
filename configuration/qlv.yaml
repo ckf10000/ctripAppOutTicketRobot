@@ -3,14 +3,13 @@ user_key: 9a68295ec90b1fc10ab94331c882bab9
 domain: outsideapi.qlv88.com
 protocol: http
 lock_order_args:
-  xc:
-    {
-      "policy_name": "向彬文 重复购买",
-      "oper": "robot-XC",
-      "air_cos": "",
-      "order_pk": "	2910325",
-      "order_src_cat": "国内",
-    }
+  xc: {
+    "policy_name": "测试-XC",
+    "oper": "robot-XCAPP",
+    "air_cos": "",
+    "order_pk": "2919810",
+    "order_src_cat": "国内"
+  }
 interfaces:
   lock_order:
     path: /LockOrder.ashx

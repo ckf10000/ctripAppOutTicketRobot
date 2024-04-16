@@ -15,7 +15,7 @@ from apps.common.libs.service_environ import configuration
 
 class CTripConfigRepository(object):
     ctrip_config = getattr(configuration, "ctrip")
-    payment_config = getattr(configuration, "payment")
+    payment_config = getattr(configuration, "fill_qlv")
 
     @classmethod
     def get_ctrip_group_config(cls, group_name: str) -> t.Dict:
@@ -23,19 +23,18 @@ class CTripConfigRepository(object):
         return dict(
             ctrip_username=getattr(group_config, "account"),
             user_pass=getattr(group_config, "sec_key"),
-            payment_pass=getattr(group_config, "pay_key"),
+            payment_pass=getattr(group_config, "payment_type"),
             internal_phone=getattr(group_config, "internal_phone")
         )
 
     @classmethod
-    def get_payment_group_config(cls, group_name: str) -> t.Tuple:
-        group_config = getattr(cls.payment_config, group_name)
-        binding_ctrip = getattr(getattr(group_config, "pay_account"), "binding_ctrip")
-        return binding_ctrip, dict(
-            out_pf=getattr(group_config, "out_pf"),
-            out_ticket_account=getattr(group_config, "out_ticket_account"),
-            pay_account_type=getattr(group_config, "pay_account_type"),
-            pay_account=getattr(getattr(group_config, "pay_account"), "qlv")
+    def get_payment_group_config(cls, pay_method: str) -> t.Dict:
+        fill_config = getattr(cls.payment_config, pay_method)
+        return dict(
+            out_pf=getattr(fill_config, "out_pf"),
+            out_ticket_account=getattr(fill_config, "out_ticket_account"),
+            pay_account_type=getattr(fill_config, "pay_account_type"),
+            pay_account=getattr(fill_config, "pay_account")
         )
 
     @classmethod

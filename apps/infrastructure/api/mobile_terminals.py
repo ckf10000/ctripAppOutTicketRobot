@@ -12,6 +12,7 @@
 import re
 import shlex
 import airtest
+import warnings
 import subprocess
 import typing as t
 from airtest.cli.parser import cli_setup
@@ -29,6 +30,9 @@ from apps.common.annotation.exception import airtest_exception_format
 DEFAULT_PLATFORM = "Android"  # Android、Windows、iOS
 WINDOWS_PLATFORM = "Windows"
 iOS_PLATFORM = "iOS"
+
+warnings.filterwarnings("ignore", category=UserWarning,
+                        message="Currently using ADB touch, the efficiency may be very low.")
 
 
 def stop_app(app_name, timeout=5):
@@ -440,7 +444,7 @@ class Phone(object):
             result = self.dev.paste(*args, **kwargs)
         return result or None
 
-    def get_po(self, type: str, name: str = '', text: str = '', desc: str = '') -> UIObjectProxy:
+    def get_po(self, type: str, name: str = '', text: str = '', desc: str = '', textMatches: str = '') -> UIObjectProxy:
         kwargs = dict()
         if type:
             kwargs["type"] = type
@@ -450,6 +454,8 @@ class Phone(object):
             kwargs["text"] = text
         if desc:
             kwargs["desc"] = desc
+        if textMatches:
+            kwargs["textMatches"] = textMatches
         return self.poco(**kwargs)
 
     def get_po_extend(

@@ -41,3 +41,17 @@ class FlightTicketValidator(object):
             else:
                 logger.error("获取到的抵扣金额<{}>有异常.".format(deduction_amount))
             return False
+
+    @classmethod
+    def validator_payment_with_wallet(cls, pre_sale_amount: Decimal, actual_amount: Decimal) -> bool:
+        """支付校验, 钱包场景"""
+        expected_amount = pre_sale_amount + ticket_fee.get("fuel_fee") + ticket_fee.get("airport_fee")
+        if actual_amount >= expected_amount:
+            logger.info("钱包的余额<{}>大于或等于预期的支付金额<{}>，可以正常交易.".format(
+                actual_amount, expected_amount)
+            )
+            return True
+        else:
+            logger.warning(
+                "钱包的余额<{}>小于预期的支付金额<{}>，需要切换至银行卡支付.".format(actual_amount, expected_amount))
+            return False

@@ -1,5 +1,12 @@
 group_1:
-  account: 18600440822
-  sec_key: ca161022
-  pay_key: "901127"
-  internal_phone: 18569520328
+  account: "18600440822"
+  sec_key: "ca161022"
+  internal_phone: "18569520328"
+  amount_loss_max: 4
+  payment_type:
+    - { "pay_name": "礼品卡-任我行", "pay_key": "901127", "pay_type": "gift_card" }
+    - { "pay_name": "民生银行信用卡(6269)", "pay_key": "901127", "pay_type": "bank_card" }
+    - { "pay_name": "招商银行信用卡(2003)", "pay_key": "901127", "pay_type": "bank_card" }
+    - { "pay_name": "中信银行信用卡(3586)", "pay_key": "901127", "pay_type": "bank_card" }
+    - { "pay_name": "民生银行信用卡(0907)", "pay_key": "901127", "pay_type": "bank_card" }
+    - { "pay_name": "浦发银行储蓄卡(7397)", "pay_key": "901127", "pay_type": "bank_card" }

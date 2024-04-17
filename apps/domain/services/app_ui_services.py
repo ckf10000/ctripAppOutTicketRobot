@@ -809,15 +809,18 @@ class CtripAppService(PlatformService):
         """
         我已阅读并同意，点击【同意并支付】
         """
-        agree = self.device.get_po_extend(
-            type="android.widget.TextView",
-            name="去支付",
-            text="同意并支付",
-            global_num=0,
-            local_num=2,
-            touchable=False,
-        )[0]
-        agree.click()
+        try:
+            agree = self.device.get_po_extend(
+                type="android.widget.TextView",
+                name="去支付",
+                text="同意并支付",
+                global_num=0,
+                local_num=2,
+                touchable=False,
+            )[0]
+            agree.click()
+        except (PocoNoSuchNodeException, Exception):
+            pass
 
     @SleepWait(wait_time=1)
     def touch_payment_method(self) -> None:

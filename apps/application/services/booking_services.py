@@ -164,6 +164,7 @@ class BookingFlightService(object):
             if is_duplicate_order:
                 logger.warning(is_duplicate_order)
             else:
+                app.touch_insure_no()
                 app.touch_select_service_no_need()  # 保障不需要
                 app.touch_select_service_no_need()  # 预约不需要
                 app.touch_to_payment()

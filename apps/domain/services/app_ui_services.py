@@ -755,45 +755,54 @@ class CtripAppService(PlatformService):
         """
         选服务界面，点击【不用了，谢谢】
         """
-        no_need = self.device.get_po_extend(
-            type="android.widget.TextView",
-            name="android.widget.TextView",
-            text="不用了，谢谢",
-            global_num=0,
-            local_num=1,
-            touchable=False,
-        )[0]
-        no_need.click()
+        try:
+            no_need = self.device.get_po_extend(
+                type="android.widget.TextView",
+                name="android.widget.TextView",
+                text="不用了，谢谢",
+                global_num=0,
+                local_num=1,
+                touchable=False,
+            )[0]
+            no_need.click()
+        except (PocoNoSuchNodeException, Exception):
+            pass
 
     @SleepWait(wait_time=1)
     def touch_to_payment(self) -> None:
         """
         选服务界面，点击【去支付】
         """
-        to_payment = self.device.get_po_extend(
-            type="android.widget.TextView",
-            name="去支付",
-            text="去支付",
-            global_num=0,
-            local_num=2,
-            touchable=False,
-        )[0]
-        to_payment.click()
+        try:
+            to_payment = self.device.get_po_extend(
+                type="android.widget.TextView",
+                name="去支付",
+                text="去支付",
+                global_num=0,
+                local_num=2,
+                touchable=False,
+            )[0]
+            to_payment.click()
+        except (PocoNoSuchNodeException, Exception):
+            pass
 
-    @SleepWait(wait_time=1)
+    @SleepWait(wait_time=3)
     def touch_insure_no(self) -> None:
         """
         选航空意外险界面，点击【否】
         """
-        no = self.device.get_po_extend(
-            type="android.widget.TextView",
-            name="android.widget.TextView",
-            text="否",
-            global_num=0,
-            local_num=1,
-            touchable=False,
-        )[0]
-        no.click()
+        try:
+            no = self.device.get_po_extend(
+                type="android.widget.TextView",
+                name="android.widget.TextView",
+                text="否",
+                global_num=0,
+                local_num=1,
+                touchable=False,
+            )[0]
+            no.click()
+        except (PocoNoSuchNodeException, Exception):
+            pass
 
     @SleepWait(wait_time=5)
     def touch_read_agree(self) -> None:

@@ -4,7 +4,7 @@ domain: outsideapi.qlv88.com
 protocol: http
 lock_order_args:
   xc: {
-    "policy_name": "XCAPP出票",
+    "policy_name": "携程APP",
     "oper": "robot-XCAPP",
     "air_cos": "",
     "order_pk": "",

@@ -24,6 +24,16 @@ __all__ = ["booking_flight_ser"]
 class BookingFlightService(object):
 
     @classmethod
+    def check_user_login(cls, app: CtripAppService, username: str, password: str) -> None:
+        is_need_login = app.is_need_login()
+        if is_need_login is True:
+            app.touch_account_password_login()
+            app.enter_account(username=username)
+            app.enter_password(password=password)
+            app.select_agree_service_agreement()
+            app.touch_login()
+
+    @classmethod
     def loop_payment_account(cls, app: CtripAppService, pre_sale_amount: str, payment_pass: t.List) -> t.Tuple:
         is_payment_success = False
         is_payment_card = None
@@ -133,7 +143,7 @@ class BookingFlightService(object):
             else:
                 app.touch_booking_the_second_button()
                 app.touch_ordinary_booking_button()
-            app.check_user_login(username=ctrip_username, password=user_pass)
+            cls.check_user_login(app=app, username=ctrip_username, password=user_pass)
             app.touch_more_passengers_button()
             app.touch_add_passengers_button()
             app.touch_passenger_card_type()

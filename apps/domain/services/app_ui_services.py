@@ -462,34 +462,57 @@ class CtripAppService(PlatformService):
         )[0]
         ordinary_booking_button.click()
 
-    @SleepWait(wait_time=2)
-    def check_user_login(self, username: str, password: str) -> None:
+    def is_need_login(self) -> bool:
+        flag = False
         try:
-            login_page_poco = self.device.get_po(type="android.widget.TextView", name="ctrip.android.view:id/a",
-                                                 text="账号密码登录")
-            if login_page_poco.exists():
-                logger.warning("系统用户<{}>已经退出，需要重新登录".format(username))
-                username_poco = self.device.get_po_extend(
-                    type="android.widget.EditText", name="android.widget.EditText", textMatches_inner=r"^\d+.*",
-                    global_num=0, local_num=2, touchable=True
-                )[0]
-                # username_poco.click()
-                username_poco.set_text(username)
-                password_poco = self.device.get_po(
-                    type="android.widget.EditText", name="android.widget.EditText", text="登录密码"
-                )
-                # password_poco.click()
-                password_poco.set_text(password)
-                # 勾选隐私保护
-                privacy_protection = self.device.get_po(
-                    type="android.widget.ImageView", name="ctrip.android.view:id/a", desc="勾选服务协议和个人信息保护指引"
-                )
-                privacy_protection.click()
-                login_poco = self.device.get_po(type="android.widget.TextView", name="ctrip.android.view:id/a",
-                                                text="登录")
-                login_poco.click()
-        except (PocoNoSuchNodeException, Exception) as e:
-            logger.error(str(e))
+            login = self.device.get_po(
+                type="android.widget.TextView", name="ctrip.android.view:id/a", text="手机验证码登录"
+            )
+            if login.exists() is True:
+                logger.warning("手机app已经跳转至登录界面，需要做登录操作.")
+                flag = True
+        except (PocoNoSuchNodeException, Exception):
+            pass
+        return flag
+
+    def select_agree_service_agreement(self) -> None:
+        """选择【同意服务协议】"""
+        service_agreement = self.device.get_po(
+            type="android.widget.ImageView", name="ctrip.android.view:id/a", desc="勾选服务协议和个人信息保护指引"
+        )
+        service_agreement.click()
+
+    def touch_account_password_login(self) -> None:
+        """选择【账号密码登录】"""
+        account_password_login = self.device.get_po(
+            type="android.widget.TextView", name="ctrip.android.view:id/a", text="账号密码登录"
+        )
+        account_password_login.click()
+
+    def enter_account(self, username: str) -> None:
+        """输入登录用户"""
+        username_poco = self.device.get_po_extend(
+            type="android.widget.EditText", name="android.widget.EditText", textMatches_inner=r"^\d+.*",
+            global_num=0, local_num=2, touchable=True
+        )[0]
+        # username_poco.click()
+        username_poco.set_text(username)
+
+    def enter_password(self, password: str) -> None:
+        """输入登录密码"""
+        password_poco = self.device.get_po(
+            type="android.widget.EditText", name="android.widget.EditText", text="登录密码"
+        )
+        # password_poco.click()
+        password_poco.set_text(password)
+        file_name = join_path([get_images_dir(), "键盘隐藏.png"])
+        self.device.hide_keyword(file_name=file_name)
+
+    def touch_login(self) -> None:
+        """点击【登录】"""
+        login_poco = self.device.get_po(type="android.widget.TextView", name="ctrip.android.view:id/a",
+                                        text="登录")
+        login_poco.click()
 
     @LoopFindElement(loop=5)
     # @SleepWait(wait_time=3)

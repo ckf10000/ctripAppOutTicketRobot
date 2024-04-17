@@ -35,6 +35,13 @@ def test_booking_ctrip_app_special_flight_ticket():
     )
 
 
+def test_check_user_login():
+    from apps.domain.services.app_ui_services import CtripAppService
+    app = CtripAppService()
+    app.start()
+    booking_flight_ser.check_user_login(app=app, username="18600440822", password="ca161022")
+
+
 def test_loop_payment_account():
     from apps.domain.services.app_ui_services import CtripAppService
     app = CtripAppService()
@@ -47,4 +54,5 @@ def test_loop_payment_account():
 
 if __name__ == "__main__":
     # test_booking_ctrip_app_special_flight_ticket()
-    test_loop_payment_account()
+    # test_loop_payment_account()
+    test_check_user_login()

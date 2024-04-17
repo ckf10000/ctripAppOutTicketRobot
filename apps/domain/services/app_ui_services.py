@@ -813,13 +813,16 @@ class CtripAppService(PlatformService):
     @SleepWait(wait_time=1)
     def touch_payment_method(self) -> None:
         """点击【换卡支付，支持境外卡】"""
-        payment_method = self.device.get_po(
-            type="android.widget.TextView",
-            name="android.widget.TextView",
-            text="换卡支付，支持境外卡"
-        )
-        payment_method.click()
-        logger.info("在安全收银台界面，点击选择【换卡支付，支持境外卡】")
+        try:
+            payment_method = self.device.get_po(
+                type="android.widget.TextView",
+                name="android.widget.TextView",
+                text="换卡支付，支持境外卡"
+            )
+            payment_method.click()
+            logger.info("在安全收银台界面，点击选择【换卡支付，支持境外卡】")
+        except (PocoNoSuchNodeException, Exception):
+            logger.warning("没有出现收银台，可以直接选择银行卡支付.")
 
     @SleepWait(wait_time=1)
     def select_payment_method(self, payment_method: str) -> None:

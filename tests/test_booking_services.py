@@ -14,18 +14,18 @@ from apps.application.services.booking_services import booking_flight_ser
 
 def test_booking_ctrip_app_special_flight_ticket():
     booking_flight_ser.booking_ctrip_app_special_flight_ticket(
-        departure_time="2024-04-13 21:50",
+        departure_time="2024-04-22 07:40:00",
         departure_city="NKG",
         departure_city_name="南京",
-        arrive_time="2024-04-13 23:30",
+        arrive_time="2024-04-22 09:25:00",
         arrive_city="CSX",
         arrive_city_name="长沙",
-        flight="MF8036",
+        flight="CZ5134",
         passenger="李成浩",
         card_id="321284199803018015",
         card_type="身份证",
-        pre_sale_amount="240.00",
-        payment_pass=[{"card_type": "浦发银行储蓄卡(7397)", "pay_key": "901127"}],
+        pre_sale_amount="390.00",
+        payment_pass=[{"card_type": "浦发银行储蓄卡(7397)", "pay_key": "901127", "pay_type": "bank_card"}],
         internal_phone="18569520328",
         passenger_phone="18261063386",
         age_stage="成人",
@@ -53,6 +53,6 @@ def test_loop_payment_account():
 
 
 if __name__ == "__main__":
-    # test_booking_ctrip_app_special_flight_ticket()
+    test_booking_ctrip_app_special_flight_ticket()
     # test_loop_payment_account()
-    test_check_user_login()
+    # test_check_user_login()

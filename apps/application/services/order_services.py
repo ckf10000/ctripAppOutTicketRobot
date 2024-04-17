@@ -106,7 +106,7 @@ class CTripService(object):
     def booking_passenger_flight_ticket(cls, flight_info: t.Dict, passenger: t.Dict) -> t.Dict:
         passenger_info = CTripConfigRepository.get_passenger_info(qlv_passengers=passenger)
         flight_info.update(passenger_info)
-        ctrip_group_config = CTripConfigRepository.get_ctrip_group_config(group_name="group_1")
+        ctrip_group_config = CTripConfigRepository.get_ctrip_group_config(group_name="group_2")
         flight_info.update(ctrip_group_config)
         booking_info = booking_flight_ser.booking_ctrip_app_special_flight_ticket(**flight_info)
         # 有预订信息，说明订票成功
@@ -134,6 +134,7 @@ class OutTicketService(object):
                 flight_info=flight_info, passenger=passenger
             )
             if booking_info:
+                flag = True
                 booking_info.update(dict(oper=oper))
                 MQMessageService.async_push_ctrip_app_flight_ticket_order(message=booking_info)
                 # 2. 回填采购信息与票号
@@ -141,7 +142,6 @@ class OutTicketService(object):
                 if booking_info.get("itinerary_id"):
                     is_succeed = QlvService.save_itinerary_info(booking_info=booking_info)
                     if is_succeed is True:
-                        flag = True
                         remark = "出票成功"
                     else:
                         remark = "获取票号"

@@ -1124,13 +1124,7 @@ class CtripAppService(PlatformService):
         """获取机票订单的id"""
         order_id = None
         try:
-            poco = self.device.get_po_extend(
-                type="android.widget.TextView",
-                name="pricePolicy_Text_订单号",
-                global_num=0,
-                local_num=3,
-                touchable=False
-            )[0]
+            poco = self.device.get_po(type="android.widget.TextView", name="pricePolicy_Text_订单号")
             order_id = poco.get_text().split("：")[-1].strip()
         except Exception as e:
             logger.error("获取携程订单id失败，原因：{}".format(str(e)))

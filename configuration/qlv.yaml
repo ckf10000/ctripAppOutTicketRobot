@@ -7,7 +7,7 @@ lock_order_args:
     "policy_name": "XCAPP出票",
     "oper": "robot-XCAPP",
     "air_cos": "",
-    "order_pk": "2926284",
+    "order_pk": "",
     "order_src_cat": "国内"
   }
 interfaces:

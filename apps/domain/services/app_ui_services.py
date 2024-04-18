@@ -1125,7 +1125,7 @@ class CtripAppService(PlatformService):
         except Exception as e:
             logger.error("点击点击【查订单/开发票】失败，原因：{}".format(str(e)))
 
-    @SleepWait(wait_time=1)
+    @SleepWait(wait_time=2)
     def close_important_trip_guidelines(self) -> None:
         """关闭出行前必读"""
         try:

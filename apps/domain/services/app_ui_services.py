@@ -1139,7 +1139,9 @@ class CtripAppService(PlatformService):
             )
             if poco.exists() is True:
                 poco.click()
-                logger.info("【出行前必读】出行前必读小窗口，已关闭.")
+                logger.info("【出行前必读】小窗口，已关闭.")
+            else:
+                logger.info("【出行前必读】小窗口，不可点击")
         except (PocoNoSuchNodeException, Exception):
             logger.warning("没有检测到【出现前必读】小窗口弹出，可以直接进行下面的操作.")
 

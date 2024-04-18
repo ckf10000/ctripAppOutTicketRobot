@@ -7,7 +7,7 @@ lock_order_args:
     "policy_name": "携程APP",
     "oper": "robot-XCAPP",
     "air_cos": "",
-    "order_pk": "2931077",
+    "order_pk": "2931867",
     "order_src_cat": "国内"
   }
 interfaces:

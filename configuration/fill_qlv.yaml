@@ -33,3 +33,13 @@
   out_ticket_account: K王总信用卡
   pay_account_type: K王总行用卡
   pay_account: "7491-梅芳"
+"浦发银行信用卡(7715)":
+  out_pf: XCAPP
+  out_ticket_account: K王总信用卡
+  pay_account_type: K王总行用卡
+  pay_account: "7715-梅芳"
+"民生银行信用卡(3454)":
+  out_pf: XCAPP
+  out_ticket_account: K王总信用卡
+  pay_account_type: K王总行用卡
+  pay_account: "3454-梅芳"

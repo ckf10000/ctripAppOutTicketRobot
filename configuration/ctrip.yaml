@@ -17,4 +17,6 @@ group_2:
   amount_loss_max: 4
   payment_type:
     - { "pay_name": "礼品卡-任我行", "pay_key": "901127", "pay_type": "gift_card" }
+    - { "pay_name": "浦发银行信用卡(7715)", "pay_key": "901127", "pay_type": "bank_card" }
     - { "pay_name": "工商银行信用卡(7491)", "pay_key": "901127", "pay_type": "bank_card" }
+    - { "pay_name": "民生银行信用卡(3454)", "pay_key": "901127", "pay_type": "bank_card" }
